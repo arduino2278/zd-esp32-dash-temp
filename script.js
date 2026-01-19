@@ -1,7 +1,7 @@
 // 🔑 REMPLACE PAR TON TOKEN BLYNK
-const TOKEN = "TON_BLYNK_AUTH_TOKEN";
+const TOKEN = "G_bze_vpEmJLLN2SPF92ThQuv0foMP2x";
 
-// Virtual Pins Blynk
+// Virtual Pins
 const TEMP_PIN = "V3";
 const HUM_PIN  = "V4";
 
@@ -58,9 +58,10 @@ const ledRed = document.getElementById("ledRed");
 const ledGreen = document.getElementById("ledGreen");
 
 // -------------------
-// STOCKAGE DES DONNÉES POUR CSV
+// TABLEAU ET CSV
 // -------------------
-let csvData = [["Heure", "Température (°C)", "Humidité (%)"]];
+let csvData = [["Heure","Température (°C)","Humidité (%)"]];
+const tableBody = document.getElementById("dataTable").getElementsByTagName("tbody")[0];
 
 // -------------------
 // UPDATE DATA
@@ -70,24 +71,25 @@ async function updateData() {
     const temp = parseFloat(await fetch(tempURL).then(r => r.text()));
     const hum  = parseFloat(await fetch(humURL).then(r => r.text()));
 
-    // ---- Update Gauges ----
+    const time = new Date().toLocaleTimeString();
+
+    // ---- Gauges ----
     tempGauge.set(temp);
     humGauge.set(hum);
     document.getElementById("tempValue").innerText = temp.toFixed(1) + " °C";
     document.getElementById("humValue").innerText  = hum.toFixed(1) + " %";
 
-    // ---- Update Chart ----
-    const time = new Date().toLocaleTimeString();
+    // ---- Chart ----
     chart.data.labels.push(time);
     chart.data.datasets[0].data.push(temp);
     chart.data.datasets[1].data.push(hum);
-    if (chart.data.labels.length > 20) {
+    if(chart.data.labels.length > 20){
       chart.data.labels.shift();
       chart.data.datasets.forEach(d => d.data.shift());
     }
     chart.update();
 
-    // ---- Gestion LEDs ----
+    // ---- LEDs ----
     if(temp >= 23){
       ledRed.classList.add("on");
       ledGreen.classList.remove("on");
@@ -96,10 +98,20 @@ async function updateData() {
       ledRed.classList.remove("on");
     }
 
-    // ---- Stocker pour CSV ----
+    // ---- Tableau ----
+    const newRow = tableBody.insertRow();
+    newRow.insertCell(0).innerText = time;
+    newRow.insertCell(1).innerText = temp.toFixed(1);
+    newRow.insertCell(2).innerText = hum.toFixed(1);
+
+    if(tableBody.rows.length > 20){
+      tableBody.deleteRow(0);
+    }
+
+    // ---- Stockage CSV ----
     csvData.push([time, temp.toFixed(1), hum.toFixed(1)]);
 
-  } catch (err) {
+  } catch(err) {
     console.error("Erreur Blynk API :", err);
   }
 }
@@ -108,17 +120,26 @@ async function updateData() {
 // EXPORT CSV
 // -------------------
 document.getElementById("exportBtn").addEventListener("click", () => {
-  let csvContent = csvData.map(e => e.join(",")).join("\n");
-  const blob = new Blob([csvContent], { type: 'text/csv' });
+  if(csvData.length <= 1){
+    alert("Aucune donnée à exporter !");
+    return;
+  }
+
+  const csvContent = csvData.map(e => e.join(",")).join("\n");
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   const url = URL.createObjectURL(blob);
+
   const a = document.createElement("a");
   a.href = url;
-  a.download = "temp_hum.csv";
+  a.setAttribute("download","temp_hum.csv");
+  document.body.appendChild(a);
   a.click();
+  document.body.removeChild(a);
+
   URL.revokeObjectURL(url);
 });
 
 // -------------------
-// Rafraîchissement toutes les 2 secondes
+// Mise à jour toutes les 2 secondes
 // -------------------
 setInterval(updateData, 2000);
