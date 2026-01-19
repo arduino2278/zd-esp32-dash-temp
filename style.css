@@ -1,0 +1,27 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f4f6f8;
+  text-align: center;
+  margin: 0;
+  padding: 10px;
+}
+
+h2 {
+  margin-bottom: 10px;
+}
+
+.gauges {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+canvas {
+  max-width: 250px;
+  max-height: 250px;
+}
+
+.chart-container {
+  margin-top: 20px;
+}
