@@ -1,0 +1,30 @@
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>ESP32 | Température & Humidité</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Gauge.js -->
+  <script src="https://cdn.jsdelivr.net/npm/gaugeJS/dist/gauge.min.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>🌡️ Dashboard ESP32 – Blynk</h2>
+
+<div class="gauges">
+  <canvas id="tempGauge"></canvas>
+  <canvas id="humGauge"></canvas>
+</div>
+
+<div class="chart-container">
+  <canvas id="chart"></canvas>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
