@@ -17,8 +17,8 @@
 
 <h2>🌡️ Dashboard ESP32 – Température & Humidité</h2>
 
+<!-- Jauges -->
 <div class="gauges">
-
   <div class="gauge-box">
     <h3>🌡️ Température</h3>
     <canvas id="tempGauge"></canvas>
@@ -30,9 +30,9 @@
     <canvas id="humGauge"></canvas>
     <div class="value" id="humValue">-- %</div>
   </div>
-
 </div>
 
+<!-- LEDs -->
 <div class="leds">
   <div class="led-box">
     <h3>Température LED</h3>
@@ -41,10 +41,29 @@
   </div>
 </div>
 
+<!-- Export CSV -->
 <div class="export">
   <button id="exportBtn">Exporter CSV</button>
 </div>
 
+<!-- Tableau historique -->
+<div class="table-container">
+  <h3>📊 Historique Température & Humidité</h3>
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th>Heure</th>
+        <th>Température (°C)</th>
+        <th>Humidité (%)</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Lignes ajoutées dynamiquement -->
+    </tbody>
+  </table>
+</div>
+
+<!-- Graphe -->
 <div class="chart-container">
   <canvas id="chart"></canvas>
 </div>
