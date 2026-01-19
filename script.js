@@ -58,7 +58,7 @@ const ledRed = document.getElementById("ledRed");
 const ledGreen = document.getElementById("ledGreen");
 
 // -------------------
-// TABLEAU ET CSV
+// TABLEAU ET DONNÉES EXCEL
 // -------------------
 let csvData = [["Heure","Température (°C)","Humidité (%)"]];
 const tableBody = document.getElementById("dataTable").getElementsByTagName("tbody")[0];
@@ -108,7 +108,7 @@ async function updateData() {
       tableBody.deleteRow(0);
     }
 
-    // ---- Stockage CSV ----
+    // ---- Stockage Excel ----
     csvData.push([time, temp.toFixed(1), hum.toFixed(1)]);
 
   } catch(err) {
@@ -117,7 +117,7 @@ async function updateData() {
 }
 
 // -------------------
-// EXPORT CSV
+// EXPORT EXCEL
 // -------------------
 document.getElementById("exportBtn").addEventListener("click", () => {
   if(csvData.length <= 1){
@@ -125,21 +125,18 @@ document.getElementById("exportBtn").addEventListener("click", () => {
     return;
   }
 
-  const csvContent = csvData.map(e => e.join(",")).join("\n");
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
+  // Créer worksheet
+  const ws = XLSX.utils.aoa_to_sheet(csvData);
 
-  const a = document.createElement("a");
-  a.href = url;
-  a.setAttribute("download","temp_hum.csv");
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  // Créer workbook
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "TempHum");
 
-  URL.revokeObjectURL(url);
+  // Télécharger Excel
+  XLSX.writeFile(wb, "temp_hum.xlsx");
 });
 
 // -------------------
-// Mise à jour toutes les 2 secondes
+// Rafraîchissement toutes les 2 secondes
 // -------------------
 setInterval(updateData, 2000);
