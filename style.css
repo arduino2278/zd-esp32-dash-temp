@@ -36,6 +36,41 @@ canvas {
   margin-top: 8px;
 }
 
+.leds {
+  display: flex;
+  justify-content: center;
+  margin-top: 15px;
+  gap: 20px;
+}
+
+.led-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.led {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin: 5px;
+  background: #ccc; /* LED éteinte */
+}
+
+#ledRed.on { background: red; }
+#ledGreen.on { background: green; }
+
+.export {
+  margin-top: 20px;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
 .chart-container {
   margin-top: 25px;
   background: white;
