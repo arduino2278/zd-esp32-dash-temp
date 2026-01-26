@@ -1,9 +1,9 @@
 // 🔑 REMPLACE PAR TON TOKEN BLYNK
-const TOKEN = "G_bze_vpEmJLLN2SPF92ThQuv0foMP2x";
+const TOKEN = "_z_R3GuVlZHVR7SSpyqlFehlPT08hQn8";
 
 // Virtual Pins
-const TEMP_PIN = "V3";
-const HUM_PIN  = "V4";
+const TEMP_PIN = "V0";
+const HUM_PIN  = "V1";
 
 // URLs API Blynk
 const tempURL = `https://blynk.cloud/external/api/get?token=${TOKEN}&${TEMP_PIN}`;
