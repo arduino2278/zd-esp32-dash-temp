@@ -1,142 +1,71 @@
-// 🔑 REMPLACE PAR TON TOKEN BLYNK
 const TOKEN = "_z_R3GuVlZHVR7SSpyqlFehlPT08hQn8";
 
-// Virtual Pins
 const TEMP_PIN = "V0";
 const HUM_PIN  = "V1";
+const LED_R_PIN = "V2";
+const LED_V_PIN = "V3";
 
-// URLs API Blynk
-const tempURL = `https://blynk.cloud/external/api/get?token=${TOKEN}&${TEMP_PIN}`;
-const humURL  = `https://blynk.cloud/external/api/get?token=${TOKEN}&${HUM_PIN}`;
+const INTERVAL = 4000; // ⬅️ plus stable
 
-// -------------------
-// GAUGES
-// -------------------
-const tempGauge = new Gauge(document.getElementById("tempGauge")).setOptions({
-  angle: 0.15,
-  lineWidth: 0.44,
-  radiusScale: 1,
-  pointer: { length: 0.6, strokeWidth: 0.035 },
-  maxValue: 50
-});
+function getValue(pin) {
+  return fetch(`https://blynk.cloud/external/api/get?token=${TOKEN}&${pin}`)
+    .then(r => r.text())
+    .then(v => {
+      if (v === "" || v === "null") return null;
+      return parseFloat(v);
+    });
+}
+
+// Gauges
+const tempGauge = new Gauge(document.getElementById("tempGauge")).setOptions({ angle:0.15, lineWidth:0.44 });
+tempGauge.maxValue = 50;
 tempGauge.setMinValue(0);
-tempGauge.set(0);
 
-const humGauge = new Gauge(document.getElementById("humGauge")).setOptions({
-  angle: 0.15,
-  lineWidth: 0.44,
-  radiusScale: 1,
-  pointer: { length: 0.6, strokeWidth: 0.035 },
-  maxValue: 100
-});
+const humGauge = new Gauge(document.getElementById("humGauge")).setOptions({ angle:0.15, lineWidth:0.44 });
+humGauge.maxValue = 100;
 humGauge.setMinValue(0);
-humGauge.set(0);
 
-// -------------------
-// CHART.JS
-// -------------------
-const ctx = document.getElementById("chart").getContext("2d");
-const chart = new Chart(ctx, {
+// Chart
+const chart = new Chart(document.getElementById("chart"), {
   type: "line",
-  data: {
-    labels: [],
-    datasets: [
-      { label: "Température (°C)", data: [], borderWidth: 2, tension: 0.3 },
-      { label: "Humidité (%)", data: [], borderWidth: 2, tension: 0.3 }
-    ]
-  },
-  options: {
-    responsive: true,
-    scales: { y: { beginAtZero: true } }
-  }
+  data: { labels: [], datasets: [{ label:"Temp (°C)", data: [] }, { label:"Hum (%)", data: [] }] }
 });
 
-// -------------------
-// LED ELEMENTS
-// -------------------
-const ledRed = document.getElementById("ledRed");
-const ledGreen = document.getElementById("ledGreen");
-
-// -------------------
-// TABLEAU ET DONNÉES EXCEL
-// -------------------
-let csvData = [["Heure","Température (°C)","Humidité (%)"]];
-const tableBody = document.getElementById("dataTable").getElementsByTagName("tbody")[0];
-
-// -------------------
-// UPDATE DATA
-// -------------------
 async function updateData() {
   try {
-    const temp = parseFloat(await fetch(tempURL).then(r => r.text()));
-    const hum  = parseFloat(await fetch(humURL).then(r => r.text()));
+    const temp = await getValue(TEMP_PIN);
+    const hum  = await getValue(HUM_PIN);
+    const ledR = await getValue(LED_R_PIN);
+    const ledV = await getValue(LED_V_PIN);
+
+    if (temp === null || hum === null) return;
 
     const time = new Date().toLocaleTimeString();
 
-    // ---- Gauges ----
+    // Gauges
     tempGauge.set(temp);
     humGauge.set(hum);
-    document.getElementById("tempValue").innerText = temp.toFixed(1) + " °C";
-    document.getElementById("humValue").innerText  = hum.toFixed(1) + " %";
+    tempValue.innerText = temp.toFixed(1) + " °C";
+    humValue.innerText  = hum.toFixed(1) + " %";
 
-    // ---- Chart ----
+    // LEDs (SYNC BLYNK)
+    ledRed.classList.toggle("on", ledR > 0);
+    ledGreen.classList.toggle("on", ledV > 0);
+
+    // Chart
     chart.data.labels.push(time);
     chart.data.datasets[0].data.push(temp);
     chart.data.datasets[1].data.push(hum);
-    if(chart.data.labels.length > 20){
+    if (chart.data.labels.length > 20) {
       chart.data.labels.shift();
       chart.data.datasets.forEach(d => d.data.shift());
     }
     chart.update();
 
-    // ---- LEDs ----
-    if(temp >= 23){
-      ledRed.classList.add("on");
-      ledGreen.classList.remove("on");
-    } else {
-      ledGreen.classList.add("on");
-      ledRed.classList.remove("on");
-    }
-
-    // ---- Tableau ----
-    const newRow = tableBody.insertRow();
-    newRow.insertCell(0).innerText = time;
-    newRow.insertCell(1).innerText = temp.toFixed(1);
-    newRow.insertCell(2).innerText = hum.toFixed(1);
-
-    if(tableBody.rows.length > 20){
-      tableBody.deleteRow(0);
-    }
-
-    // ---- Stockage Excel ----
-    csvData.push([time, temp.toFixed(1), hum.toFixed(1)]);
-
-  } catch(err) {
-    console.error("Erreur Blynk API :", err);
+  } catch (e) {
+    console.error("Blynk API error", e);
   }
 }
 
-// -------------------
-// EXPORT EXCEL
-// -------------------
-document.getElementById("exportBtn").addEventListener("click", () => {
-  if(csvData.length <= 1){
-    alert("Aucune donnée à exporter !");
-    return;
-  }
-
-  // Créer worksheet
-  const ws = XLSX.utils.aoa_to_sheet(csvData);
-
-  // Créer workbook
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "TempHum");
-
-  // Télécharger Excel
-  XLSX.writeFile(wb, "temp_hum.xlsx");
-});
-
-// -------------------
-// Rafraîchissement toutes les 2 secondes
-// -------------------
-setInterval(updateData, 2000);
+setInterval(updateData, INTERVAL);
+updateData();
